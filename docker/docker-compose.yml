@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # FL Coordinator
+  coordinator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: ["python", "main.py", "--mode", "coordinator", "--log-level", "INFO"]
+    volumes:
+      - ../results:/app/results
+      - ../logs:/app/logs
+    networks:
+      - fl-network
+    environment:
+      - PYTHONPATH=/app
+    
+  # Edge Server 1
+  edge-server-1:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.edge
+    command: ["python", "main.py", "--mode", "edge-server", "--edge-server-id", "edge_1"]
+    ports:
+      - "8081:8080"
+    volumes:
+      - ../results:/app/results
+      - ../logs:/app/logs
+    networks:
+      - fl-network
+    environment:
+      - PYTHONPATH=/app
+      - EDGE_SERVER_ID=edge_1
+    depends_on:
+      - coordinator
+
+  # Edge Server 2
+  edge-server-2:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.edge
+    command: ["python", "main.py", "--mode", "edge-server", "--edge-server-id", "edge_2"]
+    ports:
+      - "8082:8080"
+    volumes:
+      - ../results:/app/results
+      - ../logs:/app/logs
+    networks:
+      - fl-network
+    environment:
+      - PYTHONPATH=/app
+      - EDGE_SERVER_ID=edge_2
+    depends_on:
+      - coordinator
+
+  # Edge Server 3
+  edge-server-3:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.edge
+    command: ["python", "main.py", "--mode", "edge-server", "--edge-server-id", "edge_3"]
+    ports:
+      - "8083:8080"
+    volumes:
+      - ../results:/app/results
+      - ../logs:/app/logs
+    networks:
+      - fl-network
+    environment:
+      - PYTHONPATH=/app
+      - EDGE_SERVER_ID=edge_3
+    depends_on:
+      - coordinator
+
+  # Simulated Clients (you can scale this)
+  client-simulator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: ["python", "scripts/run_experiments.py", "--experiment", "small"]
+    volumes:
+      - ../results:/app/results
+      - ../logs:/app/logs
+    networks:
+      - fl-network
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      - edge-server-1
+      - edge-server-2
+      - edge-server-3
+
+networks:
+  fl-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  fl-results:
+  fl-logs:
