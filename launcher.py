@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Edge-Aware Federated Learning System Launcher
 Interactive command-line interface for the FL system
@@ -68,8 +67,13 @@ Enter your choice: """
 async def run_quick_demo():
     """Run the quick demo"""
     print("🚀 Starting Quick Demo...")
-    from examples.simple_demo import main as demo_main
-    await demo_main()
+    try:
+        from examples.simple_demo import main as demo_main
+        await demo_main()
+    except ImportError:
+        print("❌ Demo module not found. Please ensure examples/simple_demo.py exists.")
+    except Exception as e:
+        print(f"❌ Demo failed: {str(e)}")
 
 async def run_experiment(size):
     """Run predefined experiments"""
@@ -99,6 +103,8 @@ async def run_experiment(size):
             from main import main
             await main()
             print(f"✅ {size.capitalize()} experiment completed successfully!")
+        except ImportError:
+            print("❌ Main module not found. Please ensure main.py exists in the project directory.")
         except Exception as e:
             print(f"❌ Experiment failed: {str(e)}")
             import traceback
@@ -130,11 +136,14 @@ async def run_custom_experiment():
             "--output-dir", output_dir
         ]
         
-        from main import main
-        await main()
-        
-        sys.argv = original_argv
-        print("✅ Custom experiment completed!")
+        try:
+            from main import main
+            await main()
+            print("✅ Custom experiment completed!")
+        except ImportError:
+            print("❌ Main module not found. Please ensure main.py exists in the project directory.")
+        finally:
+            sys.argv = original_argv
         
     except ValueError:
         print("❌ Invalid input. Please enter numeric values.")
@@ -144,15 +153,27 @@ async def run_custom_experiment():
 def visualize_results():
     """Run visualization script"""
     print("Generating visualizations...")
+    script_path = project_root / "scripts" / "visualize_results.py"
+    
+    if not script_path.exists():
+        print("❌ Visualization script not found. Please ensure scripts/visualize_results.py exists.")
+        return
+        
     try:
         import subprocess
         result = subprocess.run([
-            sys.executable, "scripts/visualize_results.py"
+            sys.executable, str(script_path)
         ], capture_output=True, text=True, encoding='utf-8', errors='replace')
         
         if result.returncode == 0:
             print("SUCCESS: Visualizations generated successfully!")
-            print("Check the 'visualizations' directory for plots")
+            print("📊 Generated plots:")
+            print("  • Training curves (accuracy/loss)")
+            print("  • Communication overhead analysis")
+            print("  • Energy consumption metrics")
+            print("  • Latency analysis")
+            print("  • Confusion matrix heatmap (false positives/negatives)")
+            print("\\nCheck the 'visualizations' directory for all plots")
             if result.stdout:
                 print(result.stdout)
         else:
@@ -165,10 +186,16 @@ def visualize_results():
 def run_tests():
     """Run system tests"""
     print("🧪 Running system tests...")
+    test_path = project_root / "tests" / "test_system.py"
+    
+    if not test_path.exists():
+        print("❌ Test script not found. Please ensure tests/test_system.py exists.")
+        return
+        
     try:
         import subprocess
         result = subprocess.run([
-            sys.executable, "tests/test_system.py"
+            sys.executable, str(test_path)
         ], capture_output=True, text=True)
         
         print(result.stdout)
@@ -182,10 +209,16 @@ def run_tests():
 def setup_system():
     """Run setup script"""
     print("⚙️ Setting up system...")
+    setup_path = project_root / "setup.py"
+    
+    if not setup_path.exists():
+        print("❌ Setup script not found. Please ensure setup.py exists.")
+        return
+        
     try:
         import subprocess
         result = subprocess.run([
-            sys.executable, "setup.py"
+            sys.executable, str(setup_path)
         ])
         
         if result.returncode == 0:
@@ -316,4 +349,5 @@ async def main():
             input("⏸️  Press Enter to continue...")
 
 if __name__ == "__main__":
+    asyncio.run(main())
     asyncio.run(main())

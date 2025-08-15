@@ -215,3 +215,10 @@ docs/_build/
 
 # Backup files
 *.backup
+
+# Project documentation and overview files
+SIMULATION_OVERVIEW.md
+TECHNICAL_REFERENCE.md
+PROJECT_DOCUMENTATION.md
+CODE_DOCUMENTATION.txt
+SYSTEM_REPORT.txt
